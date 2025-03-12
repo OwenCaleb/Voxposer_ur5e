@@ -10,19 +10,30 @@ from utils import load_prompt, DynamicObservation, IterableDynamicObservation
 import time
 from LLM_cache import DiskCache
 
+'''
+用于让 LLM（大语言模型）控制机器人
+采用 "Code as Policies" 思想（用代码直接指导机器人行动）
+基于 GPT-4 API，让 LMP 生成 Python 代码
+'''
 class LMP:
     """Language Model Program (LMP), adopted from Code as Policies."""
     def __init__(self, name, cfg, fixed_vars, variable_vars, debug=False, env='rlbench'):
         self._name = name
         self._cfg = cfg
         self._debug = debug
-        self._base_prompt = load_prompt(f"{env}/{self._cfg['prompt_fname']}.txt")
+        self._base_prompt = load_prompt(f"{env}/{self._cfg['prompt_fname']}.txt") 
+        #  LLM 通过这个 prompt 生成 Python 代码
         self._stop_tokens = list(self._cfg['stop'])
         self._fixed_vars = fixed_vars
         self._variable_vars = variable_vars
         self.exec_hist = ''
+        # 记录 LMP 生成的执行历史
+        # 可能用于调试和优化 LLM 生成的代码
         self._context = None
         self._cache = DiskCache(load_cache=self._cfg['load_cache'])
+        # DiskCache 可能是一个缓存机制
+        # 避免 LLM 反复调用 OpenAI API，降低 API 调用成本
+        # 存储 LMP 生成的代码
 
     def clear_exec_hist(self):
         self.exec_hist = ''
@@ -34,7 +45,7 @@ class LMP:
             variable_vars_imports_str = ''
         prompt = self._base_prompt.replace('{variable_vars_imports}', variable_vars_imports_str)
 
-        if self._cfg['maintain_session'] and self.exec_hist != '':
+        if self._cfg['maintain_session'] and self.exec_hist != '': #添加历史执行记录
             prompt += f'\n{self.exec_hist}'
         
         prompt += '\n'  # separate prompted examples with the query part
@@ -128,7 +139,13 @@ class LMP:
 
         gvars = merge_dicts([self._fixed_vars, self._variable_vars])
         lvars = kwargs
-
+        '''
+        收集全局变量 gvars：
+    self._fixed_vars：固定变量（numpy、quaternion 计算等）
+    self._variable_vars：环境相关变量（任务状态、API
+收集局部变量 lvars
+    
+        '''
         # return function instead of executing it so we can replan using latest obs（do not do this for high-level UIs)
         if not self._name in ['composer', 'planner']:
             to_exec = 'def ret_val():\n' + to_exec.replace('ret_val = ', 'return ')
@@ -149,7 +166,7 @@ class LMP:
         self.exec_hist += f'\n{to_log.strip()}'
 
         if self._cfg['maintain_session']:
-            self._variable_vars.update(lvars)
+            self._variable_vars.update(lvars)#如果 maintain_session=True，则 self._variable_vars 里存储的变量（如环境状态、执行历史）会被更新。这样，在下一次 LMP 执行时，可以保留上次执行后的变量，维持连续的推理过程。
 
         if self._cfg['has_return']:
             if self._name == 'parse_query_obj':

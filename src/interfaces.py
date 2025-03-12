@@ -7,6 +7,15 @@ from scipy.ndimage import distance_transform_edt
 import transforms3d
 from controllers import Controller
 
+
+
+
+# 连接 RLBench 机器人环境
+# 将机器人环境转换为 LLM 友好的接口
+# 执行路径规划 & 运动控制
+# 提供 Voxel 体素网格用于 3D 规划
+# 将 3D 物理空间转换为体素空间，用于 LLM 推理
+#  LLM（大语言模型）控制机器人：LMP
 # creating some aliases for end effector and table in case LLMs refer to them differently (but rarely this happens)
 EE_ALIAS = ['ee', 'endeffector', 'end_effector', 'end effector', 'gripper', 'hand']
 TABLE_ALIAS = ['table', 'desk', 'workstation', 'work_station', 'work station', 'workspace', 'work_space', 'work space']
@@ -88,7 +97,7 @@ class LMP_interface():
       velocity_map: callable function that generates a 3D numpy array, the velocity voxel map
       gripper_map: callable function that generates a 3D numpy array, the gripper voxel map
     """
-    # initialize default voxel maps if not specified
+    # initialize default voxel maps if not specified rotation_map: 旋转信息，表示机器人手部的方向velocity_map: 速度信息gripper_map: 夹爪状态（开/关）avoidance_map: 避障信息
     if rotation_map is None:
       rotation_map = self._get_default_voxel_map('rotation')
     if velocity_map is None:
@@ -97,7 +106,7 @@ class LMP_interface():
       gripper_map = self._get_default_voxel_map('gripper')
     if avoidance_map is None:
       avoidance_map = self._get_default_voxel_map('obstacle')
-    object_centric = (not movable_obs_func()['name'] in EE_ALIAS)
+    object_centric = (not movable_obs_func()['name'] in EE_ALIAS)#
     execute_info = []
     if affordance_map is not None:
       # execute path in closed-loop
@@ -418,6 +427,7 @@ def setup_LMP(env, general_config, debug=False):
       k: getattr(lmp_env, k)
       for k in dir(lmp_env) if callable(getattr(lmp_env, k)) and not k.startswith("_")
   }  # our custom APIs exposed to LMPs
+  # 收集了所有公开的可调用方法 让 LLM 通过 variable_vars 调用 LMP_interface 方法
 
   # allow LMPs to access other LMPs
   lmp_names = [name for name in lmps_config.keys() if not name in ['composer', 'planner', 'config']]
@@ -425,6 +435,7 @@ def setup_LMP(env, general_config, debug=False):
       k: LMP(k, lmps_config[k], fixed_vars, variable_vars, debug, env_name)
       for k in lmp_names
   }
+  # "低级 LMP"
   variable_vars.update(low_level_lmps)
 
   # creating the LMP for skill-level composition

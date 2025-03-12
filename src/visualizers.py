@@ -14,17 +14,20 @@ class ValueMapVisualizer:
         self.save_dir = config['save_dir']
         if self.save_dir is not None:
             os.makedirs(self.save_dir, exist_ok=True)
-        self.quality = config['quality']
+        self.quality = config['quality'] #low
         self.update_quality(self.quality)
-        self.map_size = config['map_size']
+        self.map_size = config['map_size'] #100
     
     def update_bounds(self, lower, upper):
+        # 这个方法用于更新 VoxPoserRLBench 机器人工作空间的边界信息，并计算可视化比例。
         self.workspace_bounds_min = lower
         self.workspace_bounds_max = upper
+        # 扩展可视化范围，使 3D 视图边界比实际工作空间稍大 避免 3D 视图裁剪掉机器人或物体
         self.plot_bounds_min = lower - 0.15 * (upper - lower)
         self.plot_bounds_max = upper + 0.15 * (upper - lower)
         xyz_ratio = 1 / (self.workspace_bounds_max - self.workspace_bounds_min)
         scene_scale = np.max(xyz_ratio) / xyz_ratio
+        # 保持 XYZ 轴的缩放比例一致，避免 3D 视觉变形  归一化
         self.scene_scale = scene_scale
 
     def update_quality(self, quality):
@@ -75,9 +78,9 @@ class ValueMapVisualizer:
     def update_scene_points(self, points, colors=None):
         points = points.astype(np.float16)
         assert colors.dtype == np.uint8
-        self.scene_points = (points, colors)
+        self.scene_points = (points, colors)#转换点云数据类型为 np.float16（减少内存占用）。检查颜色数据类型是否为 np.uint8（确保颜色值有效）。存储点云数据到 self.scene_points 变量。
 
-    def visualize(self, info, show=False, save=True):
+    def visualize(self, info, show=True, save=True):
         """visualize the path and relevant info using plotly"""
         planner_info = info['planner_info']
         waypoints_world = np.array([p[0] for p in info['traj_world']])
