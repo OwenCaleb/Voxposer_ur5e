@@ -1,0 +1,12 @@
+Generated code:
+# Query: a point on top of the bin.
+affordance_map = get_empty_affordance_map()
+bin = parse_query_obj('bin')
+(min_x, min_y, min_z), (max_x, max_y, max_z) = bin.aabb
+center_x, center_y, center_z = bin.position
+# on top of so we use max_z
+x = center_x
+y = center_y
+z = max_z
+affordance_map[x, y, z] = 1
+ret_val = affordance_map

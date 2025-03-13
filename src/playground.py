@@ -74,14 +74,14 @@ voxposer_ui = lmps['plan_ui']
 # 加载任务，选择具体任务
 # below are the tasks that have object names added to the "task_object_names.json" file
 # uncomment one to use
-# env.load_task(tasks.PutRubbishInBin)
+env.load_task(tasks.PutRubbishInBin)
 # env.load_task(tasks.LampOff)
 # env.load_task(tasks.OpenWineBottle)
 # env.load_task(tasks.PushButton)
 # env.load_task(tasks.TakeOffWeighingScales)
 # env.load_task(tasks.MeatOffGrill)
 # env.load_task(tasks.SlideBlockToTarget)
-env.load_task(tasks.TakeLidOffSaucepan)
+# env.load_task(tasks.TakeLidOffSaucepan)
 # env.load_task(tasks.TakeUmbrellaOutOfUmbrellaStand)
 
 # 重置环境 

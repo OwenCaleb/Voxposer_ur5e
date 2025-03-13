@@ -1,6 +1,0 @@
-Generated code:
-# Query: grasp the saucepan lid.
-movable = parse_query_obj('gripper')
-affordance_map = get_affordance_map('a point at the center of the saucepan lid')
-gripper_map = get_gripper_map('open everywhere except 1cm around the saucepan lid')
-execute(movable, affordance_map=affordance_map, gripper_map=gripper_map)

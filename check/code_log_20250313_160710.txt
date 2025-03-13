@@ -1,6 +1,0 @@
-Generated code:
-objects = ['saucepan', 'saucepan_lid']
-# Query: gripper.
-saucepan = detect('saucepan')
-saucepan_lid = detect('saucepan_lid')
-ret_val = saucepan_lid

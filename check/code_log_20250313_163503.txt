@@ -1,0 +1,10 @@
+Generated code:
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: rubbish.
+rubbish = detect('rubbish')
+ret_val = rubbish
+Generated code:
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: rubbish.
+rubbish = detect('rubbish')
+ret_val = rubbish

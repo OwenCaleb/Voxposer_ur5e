@@ -1,0 +1,6 @@
+Execution history updated:
+
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper

@@ -1,0 +1,7 @@
+Generated code:
+# Query: a point at the center of the rubbish.
+affordance_map = get_empty_affordance_map()
+rubbish = parse_query_obj('rubbish')
+x, y, z = rubbish.position
+affordance_map[x, y, z] = 1
+ret_val = affordance_map

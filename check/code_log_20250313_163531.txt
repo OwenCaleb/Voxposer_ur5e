@@ -1,0 +1,5 @@
+Generated code:
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: bin.
+bin = detect('bin')
+ret_val = bin

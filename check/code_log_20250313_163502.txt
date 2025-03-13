@@ -1,0 +1,9 @@
+Generated code:
+# Query: open everywhere except 1cm around the rubbish.
+gripper_map = get_empty_gripper_map()
+# open everywhere
+gripper_map[:, :, :] = 1
+# close when 1cm around the rubbish
+rubbish = parse_query_obj('rubbish')
+set_voxel_by_radius(gripper_map, rubbish.position, radius_cm=1, value=0)
+ret_val = gripper_map

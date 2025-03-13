@@ -1,0 +1,7 @@
+Execution history updated:
+
+# Query: grasp the rubbish.
+movable = parse_query_obj('gripper')
+affordance_map = get_affordance_map('a point at the center of the rubbish')
+gripper_map = get_gripper_map('open everywhere except 1cm around the rubbish')
+execute(movable, affordance_map=affordance_map, gripper_map=gripper_map)

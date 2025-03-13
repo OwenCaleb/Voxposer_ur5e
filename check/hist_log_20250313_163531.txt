@@ -1,0 +1,22 @@
+Execution history updated:
+
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: rubbish.
+rubbish = detect('rubbish')
+ret_val = rubbish
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: rubbish.
+rubbish = detect('rubbish')
+ret_val = rubbish
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['bin', 'rubbish', 'tomato1', 'tomato2']
+# Query: bin.
+bin = detect('bin')
+ret_val = bin
