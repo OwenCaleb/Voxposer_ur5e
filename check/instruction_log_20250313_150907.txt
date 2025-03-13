@@ -1,2 +1,0 @@
-Prompt:
-slide the block towards the green target

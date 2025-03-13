@@ -1,7 +1,0 @@
-Generated code:
-objects = ['bottle', 'cap']
-# Query: screw open the wine bottle.
-composer("grasp the bottle")
-composer("turn counterclockwise to unscrew the cap")
-composer("back to default pose")
-# done

@@ -1,5 +1,0 @@
-Generated code:
-objects = ['button']
-# Query: button.
-button = detect('button')
-ret_val = button

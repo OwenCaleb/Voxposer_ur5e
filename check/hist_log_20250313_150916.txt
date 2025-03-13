@@ -1,6 +1,0 @@
-Execution history updated:
-
-objects = ['block', 'target']
-# Query: block.
-block = detect('block')
-ret_val = block

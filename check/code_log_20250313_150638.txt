@@ -1,7 +1,0 @@
-Generated code:
-# Query: a point at the center of the button.
-affordance_map = get_empty_affordance_map()
-button = parse_query_obj('button')
-x, y, z = button.position
-affordance_map[x, y, z] = 1
-ret_val = affordance_map

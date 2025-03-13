@@ -1,8 +1,0 @@
-Generated code:
-objects = ['saucepan', 'saucepan_lid']
-# Query: take lid off the saucepan.
-composer("grasp the saucepan lid")
-composer("back to default pose")
-composer("move to 5cm above the saucepan")
-composer("open gripper")
-# done

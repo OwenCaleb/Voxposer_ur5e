@@ -1,6 +1,0 @@
-Execution history updated:
-
-# Query: move to the center of the button.
-movable = parse_query_obj('gripper')
-affordance_map = get_affordance_map('a point at the center of the button')
-execute(movable, affordance_map=affordance_map)

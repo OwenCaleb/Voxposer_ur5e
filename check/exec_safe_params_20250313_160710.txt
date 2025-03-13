@@ -1,0 +1,15 @@
+=== exec_safe 参数记录 ===
+code_str:
+def ret_val():
+    objects = ['saucepan', 'saucepan_lid']
+    saucepan = detect('saucepan')
+    saucepan_lid = detect('saucepan_lid')
+    return saucepan_lid
+
+custom_gvars:
+{'np': <module 'numpy' from '/home/ur5/anaconda3/envs/voxposer-env/lib/python3.9/site-packages/numpy/__init__.py'>, 'euler2quat': <function euler2quat at 0x7efc98377430>, 'quat2euler': <function quat2euler at 0x7efc983774c0>, 'qinverse': <function qinverse at 0x7efc983709d0>, 'qmult': <function qmult at 0x7efc98370790>, 'cm2index': <bound method LMP_interface.cm2index of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'detect': <bound method LMP_interface.detect of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'execute': <bound method LMP_interface.execute of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'get_ee_pos': <bound method LMP_interface.get_ee_pos of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'get_empty_affordance_map': <bound method LMP_interface.get_empty_affordance_map of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'get_empty_avoidance_map': <bound method LMP_interface.get_empty_avoidance_map of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'get_empty_gripper_map': <bound method LMP_interface.get_empty_gripper_map of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'get_empty_rotation_map': <bound method LMP_interface.get_empty_rotation_map of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'get_empty_velocity_map': <bound method LMP_interface.get_empty_velocity_map of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'index2cm': <bound method LMP_interface.index2cm of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'pointat2quat': <bound method LMP_interface.pointat2quat of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'reset_to_default_pose': <bound method LMP_interface.reset_to_default_pose of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'set_voxel_by_radius': <bound method LMP_interface.set_voxel_by_radius of <interfaces.LMP_interface object at 0x7efc66f28c10>>, 'parse_query_obj': <LMP.LMP object at 0x7efc66f28ee0>, 'get_affordance_map': <LMP.LMP object at 0x7efc66f28eb0>, 'get_avoidance_map': <LMP.LMP object at 0x7efc66f34280>, 'get_velocity_map': <LMP.LMP object at 0x7efc66f34160>, 'get_rotation_map': <LMP.LMP object at 0x7efc66f340d0>, 'get_gripper_map': <LMP.LMP object at 0x7efc66f34430>, 'composer': <LMP.LMP object at 0x7efc66f28bb0>, 'exec': <function exec_safe.<locals>.<lambda> at 0x7efc66ee39d0>, 'eval': <function exec_safe.<locals>.<lambda> at 0x7efc66ee39d0>}
+
+lvars:
+{}
+==========================
+

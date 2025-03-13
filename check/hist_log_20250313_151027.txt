@@ -1,6 +1,0 @@
-Execution history updated:
-
-objects = ['saucepan', 'saucepan_lid']
-# Query: gripper.
-gripper = detect('gripper')
-ret_val = gripper

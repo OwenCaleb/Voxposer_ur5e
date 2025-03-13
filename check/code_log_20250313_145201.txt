@@ -1,8 +1,0 @@
-Generated code:
-objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
-# Query: put the green item on the item.
-composer("grasp the green pepper")
-composer("back to default pose")
-composer("move to the top of the scale")
-composer("open gripper")
-# done

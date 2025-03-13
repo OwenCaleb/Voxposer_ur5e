@@ -8,7 +8,13 @@ from dynamics_models import PushingDynamicsModel
 # creating some aliases for end effector and table in case LLMs refer to them differently
 EE_ALIAS = ['ee', 'endeffector', 'end_effector', 'end effector', 'gripper', 'hand']
 
+
 class Controller:
+    '''
+    根据规划器给定的路径或目标，执行机器人运动（包括末端执行器动作和物体推动）
+    利用一个基于随机抽样和 MPC（Model Predictive Control）思想的策略生成控制序列
+    '''
+
     def __init__(self, env, config):
         self.config = config
         self.env = env
@@ -16,6 +22,7 @@ class Controller:
     
     def _calculate_ee_rot(self, pushing_dir):
         """
+        根据给定的推动方向（pushing_dir），计算末端执行器应达到的旋转（以四元数形式返回）
         Given a pushing direction, calculate the rotation matrix for the end effector
         It is offsetted such that it doesn't exactly point towards the direction but slanted towards table, so it's safer
         """
@@ -37,20 +44,41 @@ class Controller:
     
     def _apply_mpc_control(self, control, target_velocity=1):
         """
+        根据 控制命令（control），计算一系列关键位姿（起始位姿、交互位姿、恢复位姿），并依次调用环境接口执行动作
         apply control to the object; depending on different control type
         """
+
+        '''
+        从 control 数组中解析出接触位置（contact_position）、推动方向（pushing_dir）和推动距离（pushing_dist）。
+        '''
         # calculate start and final ee pose
         contact_position = control[:3]  # [3]
         pushing_dir = control[3:6]  # [3]
         pushing_dist = control[6]  # [1]
+
+        '''
+        末端姿态计算：
+        利用 _calculate_ee_rot 计算出一个安全的末端执行器旋转（四元数）。
+        '''
         # calculate a safe end effector rotation
         ee_quat = self._calculate_ee_rot(pushing_dir)
+
+        '''
+        根据控制命令，计算：
+        t_start：起始位姿，在接触位置反方向移动一定距离。
+        t_interact：交互位姿，即接触位置沿推动方向移动推动距离。
+        t_rest：恢复位姿，回退到离接触点较近的位置。
+        '''
         # calculate translation
         start_dist = 0.08
         t_start = contact_position - pushing_dir * start_dist
         t_interact = contact_position + pushing_dir * pushing_dist
         t_rest = contact_position - pushing_dir * start_dist * 0.8
 
+        '''
+        首先关闭夹爪。
+        然后依次调用环境接口 move_to_pose 移动到各个位姿，最后调用 reset_to_default_pose 恢复默认状态
+        '''
         # apply control
         self.env.close_gripper()
         # move to start pose
@@ -68,6 +96,9 @@ class Controller:
 
     def execute(self, movable_obs, waypoint):
         """
+        根据传入的 observation（movable_obs）和目标 waypoint，执行对应动作
+
+
         execute a waypoint
         If movable is "end effector", then do not consider object interaction (no dynamics considered)
         If movable is "object", then consider object interaction (use heuristics-based dynamics model)
@@ -100,6 +131,11 @@ class Controller:
         return info
 
     def random_shooting_MPC(self, start_obs, target):
+
+        '''
+        通过随机抽样的方式生成多个控制序列，并利用动力学模型进行预测，计算每条序列的代价（cost）
+        '''
+
         # Initialize empty list to store the control sequence and corresponding cost
         obs_sequences = []
         controls_sequences = []
@@ -134,6 +170,7 @@ class Controller:
 
     def forward_step(self, obs, controls):
         """
+        根据当前 observation 和控制命令，利用动力学模型预测下一时刻的物体点云。
         obs: dict including point cloud [B, N, obs_dim]
         controls: batched control sequences [B, control_dim]
         returns: resulting point cloud [B, N, obs_dim]
@@ -152,6 +189,8 @@ class Controller:
 
     def generate_random_control(self, obs, target):
         """
+        为每个样本生成一组控制参数(???是什么)
+
         the function samples the following:
         1) contact_position [B, 3]: uniform sample randomly from object point cloud
         2) pushing_dir [B, 3]: fixed to be the direction from contact_position to target
@@ -175,6 +214,8 @@ class Controller:
 
     def calculate_cost(self, obs_sequences, controls_sequences, target_xyz):
         """
+        根据最后一个预测状态（点云）计算控制序列的代价。
+
         Calculate the cost of the generated control sequence
 
         inputs:

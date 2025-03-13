@@ -1,7 +1,0 @@
-Generated code:
-# Query: a point at the center of the green pepper.
-affordance_map = get_empty_affordance_map()
-green_pepper = parse_query_obj('green pepper')
-x, y, z = green_pepper.position
-affordance_map[x, y, z] = 1
-ret_val = affordance_map

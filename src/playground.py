@@ -7,9 +7,17 @@ from utils import set_lmp_objects
 import numpy as np
 from rlbench import tasks
 
+
+#api设置
+################################################
 #openai的key和base
 openai.api_key = "sk-cgpibTHnxWRPOUxdb05uaf9wPc687e0mc4EJIzpNjT3G2q5F"
 openai.api_base= "https://api.chatanywhere.tech/v1"
+
+# chatanywhere的key：
+# sk-cgpibTHnxWRPOUxdb05uaf9wPc687e0mc4EJIzpNjT3G2q5F
+# 官方key，我的账号的：
+################################################
 
 
 #日志输出 工具
@@ -46,10 +54,11 @@ config = get_config('rlbench')
 # 遍历配置中所有的语言模型（LMP）的设置，将其模型更改
 # uncomment this if you'd like to change the language model (e.g., for faster speed or lower cost)
 for lmp_name, cfg in config['lmp_config']['lmps'].items():
-    cfg['model'] = 'gpt-4o-mini'
+    cfg['model'] = 'gpt-4'
 # gpt-4 （贵）
 # gpt-3.5-turbo (成功率低)
 # gpt-4o-mini （合适）
+# o3-mini (连接不上？)
 
 # 对象初始化
 # initialize env and voxposer ui

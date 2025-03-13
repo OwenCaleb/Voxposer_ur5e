@@ -1,5 +1,0 @@
-Generated code:
-objects = ['saucepan', 'saucepan_lid']
-# Query: saucepan.
-saucepan = detect('saucepan')
-ret_val = saucepan
