@@ -6,6 +6,7 @@ import datetime
 from transforms3d.quaternions import mat2quat
 
 def set_lmp_objects(lmps, objects):
+    #该方法用于给所有 LMP（Language Model Program）对象设置环境中的物体信息，使 LMP 能够感知环境中的对象。
     if isinstance(lmps, dict):
         lmps = lmps.values()
     for lmp in lmps:

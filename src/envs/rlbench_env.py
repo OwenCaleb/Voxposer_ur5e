@@ -24,10 +24,11 @@ class CustomMoveArmThenGripper(MoveArmThenGripper):
         self._prev_arm_action = None
 
     def action(self, scene, action):
-        arm_act_size = np.prod(self.arm_action_mode.action_shape(scene))
+        arm_act_size = np.prod(self.arm_action_mode.action_shape(scene)) # 返回一个元组，表示手臂动作的维度。
         arm_action = np.array(action[:arm_act_size])
         ee_action = np.array(action[arm_act_size:])
         # if the arm action is the same as the previous action, skip it
+        # 如果 当前手臂动作 arm_action 和上一次的动作 _prev_arm_action 非常相似（几乎没有变化），就跳过手臂动作，只执行夹爪动作。
         if self._prev_arm_action is not None and np.allclose(arm_action, self._prev_arm_action):
             self.gripper_action_mode.action(scene, ee_action)
         else:
@@ -38,6 +39,8 @@ class CustomMoveArmThenGripper(MoveArmThenGripper):
             self.gripper_action_mode.action(scene, ee_action)
         self._prev_arm_action = arm_action.copy()
 
+# 主环境类
+# 环境初始化与启动，视觉信息设置，任务加载与对象名称映射，3D 点云数据获取与处理，动作执行与状态更新
 class VoxPoserRLBench():
     def __init__(self, visualizer=None):
         """
@@ -48,15 +51,24 @@ class VoxPoserRLBench():
         """
         action_mode = CustomMoveArmThenGripper(arm_action_mode=EndEffectorPoseViaPlanning(),
                                         gripper_action_mode=Discrete())
+        # 机器人控制 由手臂（arm）+ 夹爪（gripper）组成，分别设置：
+        # EndEffectorPoseViaPlanning()：手臂的控制模式，基于路径规划
+        # Discrete()：夹爪控制模式，只能开/关
+
+        # 启动 RLBench 环境
         self.rlbench_env = Environment(action_mode)
         self.rlbench_env.launch()
         self.task = None
 
+        # 获取机器人的 3D 物理工作空间边界
         self.workspace_bounds_min = np.array([self.rlbench_env._scene._workspace_minx, self.rlbench_env._scene._workspace_miny, self.rlbench_env._scene._workspace_minz])
         self.workspace_bounds_max = np.array([self.rlbench_env._scene._workspace_maxx, self.rlbench_env._scene._workspace_maxy, self.rlbench_env._scene._workspace_maxz])
+       
         self.visualizer = visualizer
         if self.visualizer is not None:
             self.visualizer.update_bounds(self.workspace_bounds_min, self.workspace_bounds_max)
+        
+        # 设定相机视角
         self.camera_names = ['front', 'left_shoulder', 'right_shoulder', 'overhead', 'wrist']
         # calculate lookat vector for all cameras (for normal estimation)
         name2cam = {
@@ -66,12 +78,15 @@ class VoxPoserRLBench():
             'overhead': self.rlbench_env._scene._cam_overhead,
             'wrist': self.rlbench_env._scene._cam_wrist,
         }
-        forward_vector = np.array([0, 0, 1])
+        forward_vector = np.array([0, 0, 1]) ## 世界坐标系中的前方方向
         self.lookat_vectors = {}
         for cam_name in self.camera_names:
             extrinsics = name2cam[cam_name].get_matrix()
             lookat = extrinsics[:3, :3] @ forward_vector
             self.lookat_vectors[cam_name] = normalize_vector(lookat)
+        
+        # 载入 JSON 文件，该文件中存储了任务对应的对象名称映射
+        # 将机器人场景中各个对象与人类可读名称关联起来
         # load file containing object names for each task
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'task_object_names.json')
         with open(path, 'r') as f:
@@ -91,6 +106,8 @@ class VoxPoserRLBench():
         return exposed_names
 
     def load_task(self, task):
+        # 加载一个新的任务
+
         """
         Loads a new task into the environment and resets task-related variables.
         Records the mask IDs of the robot, gripper, and objects in the scene.
@@ -115,7 +132,7 @@ class VoxPoserRLBench():
         internal_names = [names[1] for names in name_mapping]
         scene_objs = self.task._task.get_base().get_objects_in_tree(object_type=ObjectType.SHAPE,
                                                                       exclude_base=False,
-                                                                      first_generation_only=False)
+                                                                      first_generation_only=False)#获取任务场景中的 所有形状对象（SHAPE 类型）
         for scene_obj in scene_objs:
             if scene_obj.get_name() in internal_names:
                 exposed_name = exposed_names[internal_names.index(scene_obj.get_name())]
@@ -124,8 +141,19 @@ class VoxPoserRLBench():
                 for child in scene_obj.get_objects_in_tree():
                     self.name2ids[exposed_name].append(child.get_handle())
                     self.id2name[child.get_handle()] = exposed_name
+        '''
+            RLBench 里的对象名字 不一定直观，例如 push_button_target
+            VoxPoser 让 LLM 直接用 人类可读名称（button） 访问对象
+            同一物体的多个部件（按钮 + 按钮底座）映射到 同一个名称
+            支持 LLM 灵活调用，让 AI 能够更容易操作任务物体
+        '''
 
     def get_3d_obs_by_name(self, query_name):
+        # 根据对象名称查询，并从多个摄像头的最新观测数据中获取该对象的 3D 点云和法向量
+        #
+        # 检查传入的 query_name 是否在 name2ids 字典中存在。
+        # 遍历所有摄像头，提取点云（*_point_cloud）、对应 mask（*_mask）以及通过 open3d 计算法向量。    
+
         """
         Retrieves 3D point cloud observations and normals of an object by its name.
 
@@ -171,7 +199,11 @@ class VoxPoserRLBench():
     def get_scene_3d_obs(self, ignore_robot=False, ignore_grasped_obj=False):
         """
         Retrieves the entire scene's 3D point cloud observations and colors.
+        该方法的作用是获取整个场景的 3D 点云数据（包括颜色信息），并进行处理，如：
 
+        过滤掉超出工作空间的点。
+        可选地忽略机器人自身或夹持的物体。
+        进行体素降采样（voxel downsample），减少点云密度。
         Args:
             ignore_robot (bool): Whether to ignore points corresponding to the robot.
             ignore_grasped_obj (bool): Whether to ignore points corresponding to grasped objects.
@@ -188,7 +220,7 @@ class VoxPoserRLBench():
         colors = np.concatenate(colors, axis=0)
         masks = np.concatenate(masks, axis=0)
 
-        # only keep points within workspace
+        # only keep points within workspace由多个摄像头采集的独立数据拼接到一起，形成完整的场景点云。
         chosen_idx_x = (points[:, 0] > self.workspace_bounds_min[0]) & (points[:, 0] < self.workspace_bounds_max[0])
         chosen_idx_y = (points[:, 1] > self.workspace_bounds_min[1]) & (points[:, 1] < self.workspace_bounds_max[1])
         chosen_idx_z = (points[:, 2] > self.workspace_bounds_min[2]) & (points[:, 2] < self.workspace_bounds_max[2])
@@ -208,6 +240,10 @@ class VoxPoserRLBench():
             masks = masks[~grasped_mask]
 
         # voxel downsample using o3d
+        '''
+        使用 open3d 进行体素降采样，减少点云数量，提高效率。
+voxel_size=0.001：体素大小为 1mm，即相近的点会被合并为一个点。
+减少计算开销，提高性能。'''
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points)
         pcd.colors = o3d.utility.Vector3dVector(colors)
@@ -218,6 +254,7 @@ class VoxPoserRLBench():
         return points, colors
 
     def reset(self):
+        # 重置当前任务
         """
         Resets the environment and the task. Also updates the visualizer.
 
@@ -226,7 +263,7 @@ class VoxPoserRLBench():
         """
         assert self.task is not None, "Please load a task first"
         self.task.sample_variation()
-        descriptions, obs = self.task.reset()
+        descriptions, obs = self.task.reset()#descriptions：任务的 自然语言描述（由 RLBench 提供）。obs：环境的初始观测值（包括机器人状态、相机画面等）。'''
         obs = self._process_obs(obs)
         self.init_obs = obs
         self.latest_obs = obs
@@ -234,6 +271,8 @@ class VoxPoserRLBench():
         return descriptions, obs
 
     def apply_action(self, action):
+        # 在环境中执行给定动作
+
         """
         Applies an action in the environment and updates the state.
 
@@ -258,6 +297,8 @@ class VoxPoserRLBench():
         return obs, reward, terminate
 
     def move_to_pose(self, pose, speed=None):
+        # 移动机器人到指定位姿
+
         """
         Moves the robot arm to a specific pose.
 
@@ -337,6 +378,9 @@ class VoxPoserRLBench():
             return self.init_obs.gripper_open
 
     def _reset_task_variables(self):
+        # 重置任务相关的各类内部变量，包括初始观测、最新观测、奖励、动作记录以及与场景中各对象 mask ID 的映射（name2ids 和 id2name）。
+
+
         """
         Resets variables related to the current task in the environment.
 
@@ -357,16 +401,23 @@ class VoxPoserRLBench():
         self.id2name = {}  # any node id -> first_generation name
    
     def _update_visualizer(self):
+        #从最新观测中提取整个场景的 3D 点云与颜色信息，并传递给可视化器进行更新显示。
+
         """
         Updates the scene in the visualizer with the latest observations.
 
         Note: This function is generally called internally.
+
+        获取最新的3D场景点云数据（包括点的坐标和颜色）。
+        更新可视化工具（Visualizer） 以显示当前机器人环境状态。
         """
         if self.visualizer is not None:
             points, colors = self.get_scene_3d_obs(ignore_robot=False, ignore_grasped_obj=False)
             self.visualizer.update_scene_points(points, colors)
     
     def _process_obs(self, obs):
+        # 对获取到的观测数据进行预处理，主要是将夹爪位姿中的四元数格式从 xyzw 转换为 wxyz 格式。
+
         """
         Processes the observations, specifically converts quaternion format from xyzw to wxyz.
 
@@ -377,11 +428,13 @@ class VoxPoserRLBench():
             The processed observation.
         """
         quat_xyzw = obs.gripper_pose[3:]
-        quat_wxyz = np.concatenate([quat_xyzw[-1:], quat_xyzw[:-1]])
+        quat_wxyz = np.concatenate([quat_xyzw[-1:], quat_xyzw[:-1]]) #转换四元数格式（从 xyzw 转换为 wxyz）
         obs.gripper_pose[3:] = quat_wxyz
         return obs
 
     def _process_action(self, action):
+        #预处理输入动作，主要是将动作中四元数部分从 wxyz 转换回 xyzw 格式（与预处理观测相反），以便与 RLBench 环境的要求匹配。
+
         """
         Processes the action, specifically converts quaternion format from wxyz to xyzw.
 

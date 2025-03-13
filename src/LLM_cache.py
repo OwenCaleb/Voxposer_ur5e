@@ -7,6 +7,7 @@ class DiskCache:
     """
     A convenient disk cache that stores key-value pairs on disk.
     Useful for querying LLM API.
+    基于磁盘的缓存，用于存储和加载键值对数据，避免重复查询 LLM（如 GPT-4）等昂贵的 API。
     """
     def __init__(self, cache_dir='cache', load_cache=True):
         self.cache_dir = cache_dir

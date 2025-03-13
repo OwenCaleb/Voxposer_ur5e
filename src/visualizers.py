@@ -4,27 +4,39 @@ import numpy as np
 import os
 import datetime
 
-
+# 值图可视化功能：点云、路径、值图
+# 载入主环境类作为一个模块
+# 形式： Plotly 的交互式 3D 图形
+# 保存： HTML 
 class ValueMapVisualizer:
     """
     A Plotly-based visualizer for 3D value map and planned path.
     """
     def __init__(self, config):
+        # 保存的目录 quality 等都在配置文件
         self.scene_points = None
         self.save_dir = config['save_dir']
         if self.save_dir is not None:
             os.makedirs(self.save_dir, exist_ok=True)
-        self.quality = config['quality']
+        self.quality = config['quality'] #low
         self.update_quality(self.quality)
-        self.map_size = config['map_size']
+        self.map_size = config['map_size'] #100
     
     def update_bounds(self, lower, upper):
+
+        #工作空间下界和上界
+        # 这个方法用于更新 VoxPoserRLBench 机器人工作空间的边界信息，并计算可视化比例。
         self.workspace_bounds_min = lower
         self.workspace_bounds_max = upper
+
+        # 增加了 15% 的缓冲
+        # 扩展可视化范围，使 3D 视图边界比实际工作空间稍大 避免 3D 视图裁剪掉机器人或物体
         self.plot_bounds_min = lower - 0.15 * (upper - lower)
         self.plot_bounds_max = upper + 0.15 * (upper - lower)
         xyz_ratio = 1 / (self.workspace_bounds_max - self.workspace_bounds_min)
         scene_scale = np.max(xyz_ratio) / xyz_ratio
+
+        # 保持 XYZ 轴的缩放比例一致，避免 3D 视觉变形  归一化
         self.scene_scale = scene_scale
 
     def update_quality(self, quality):
@@ -75,9 +87,14 @@ class ValueMapVisualizer:
     def update_scene_points(self, points, colors=None):
         points = points.astype(np.float16)
         assert colors.dtype == np.uint8
-        self.scene_points = (points, colors)
+        self.scene_points = (points, colors)#转换点云数据类型为 np.float16（减少内存占用）。检查颜色数据类型是否为 np.uint8（确保颜色值有效）。存储点云数据到 self.scene_points 变量。
 
-    def visualize(self, info, show=False, save=True):
+    def visualize(self, info, show=True, save=True):
+        # 绘制路径点和路径连线
+        # 绘制代价图（Costmap）
+        # 绘制起始位置  绘制目标点
+        # 绘制场景点云
+
         """visualize the path and relevant info using plotly"""
         planner_info = info['planner_info']
         waypoints_world = np.array([p[0] for p in info['traj_world']])

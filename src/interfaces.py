@@ -7,10 +7,21 @@ from scipy.ndimage import distance_transform_edt
 import transforms3d
 from controllers import Controller
 
+
+
+
+# 连接 RLBench 机器人环境
+# 将机器人环境转换为 LLM 友好的接口
+# 执行路径规划 & 运动控制
+# 提供 Voxel 体素网格用于 3D 规划
+# 将 3D 物理空间转换为体素空间，用于 LLM 推理
+#  LLM（大语言模型）控制机器人：LMP
 # creating some aliases for end effector and table in case LLMs refer to them differently (but rarely this happens)
 EE_ALIAS = ['ee', 'endeffector', 'end_effector', 'end effector', 'gripper', 'hand']
 TABLE_ALIAS = ['table', 'desk', 'workstation', 'work_station', 'work station', 'workspace', 'work_space', 'work space']
 
+# 在机器人环境中充当语言模型与底层环境之间的接口
+# 提供一系列方法供上层大语言模型调用
 class LMP_interface():
 
   def __init__(self, env, lmp_config, controller_config, planner_config, env_name='rlbench'):
@@ -33,9 +44,18 @@ class LMP_interface():
   # == functions exposed to LLM
   # ======================================================
   def get_ee_pos(self):
+    # 获取当前末端执行器在世界坐标下的位置，并转换为体素坐标返回
     return self._world_to_voxel(self._env.get_ee_pos())
   
   def detect(self, obj_name):
+    # 根据对象名称返回一个包含关键信息（例如位置、包围盒、法向量、点云等）的观测字典。
+
+    # 如果对象名称属于末端执行器的别名（EE_ALIAS），则返回末端执行器相关信息；
+    # 如果对象名称属于桌子别名（TABLE_ALIAS），则根据工作空间边界及一定偏移量计算桌面区域（aabb、中心点、法向量固定为 [0,0,1]）；
+    # 否则，调用环境中的 get_3d_obs_by_name 获取目标点云和法向量，然后利用辅助函数将点云转换为体素地图，同时计算包围盒（aabb）、平均位置等。
+    
+    # 最后封装进 Observation 对象并返回
+    
     """return an observation dict containing useful information about the object"""
     if obj_name.lower() in EE_ALIAS:
       obs_dict = dict()
@@ -77,6 +97,18 @@ class LMP_interface():
   
   def execute(self, movable_obs_func, affordance_map=None, avoidance_map=None, rotation_map=None,
               velocity_map=None, gripper_map=None):
+    # 路径规划与动作执行
+
+    # 输入：各类 voxel 地图（如目标/affordance地图、障碍物/avoidance地图、旋转、速度、夹爪状态地图）
+    # 如果没有提供，则调用默认地图
+
+    # 使用路径规划器的 optimize 方法生成体素路径，同时获取规划器信息。
+    # 将体素路径转换为包含世界坐标、旋转、速度、夹爪状态的轨迹（调用 _path2traj）。
+    
+    # 遍历规划生成的轨迹点，调用控制器执行每个 waypoint。中间还包含了检查是否已到目标、跳过方向不合理的 waypoint 等逻辑。
+
+
+
     """
     First use planner to generate waypoint path, then use controller to follow the waypoints.
 
@@ -88,7 +120,8 @@ class LMP_interface():
       velocity_map: callable function that generates a 3D numpy array, the velocity voxel map
       gripper_map: callable function that generates a 3D numpy array, the gripper voxel map
     """
-    # initialize default voxel maps if not specified
+    
+    # initialize default voxel maps if not specified rotation_map: 旋转信息，表示机器人手部的方向velocity_map: 速度信息gripper_map: 夹爪状态（开/关）avoidance_map: 避障信息
     if rotation_map is None:
       rotation_map = self._get_default_voxel_map('rotation')
     if velocity_map is None:
@@ -97,8 +130,10 @@ class LMP_interface():
       gripper_map = self._get_default_voxel_map('gripper')
     if avoidance_map is None:
       avoidance_map = self._get_default_voxel_map('obstacle')
-    object_centric = (not movable_obs_func()['name'] in EE_ALIAS)
+
+    object_centric = (not movable_obs_func()['name'] in EE_ALIAS)#
     execute_info = []
+
     if affordance_map is not None:
       # execute path in closed-loop
       for plan_iter in range(self._cfg['max_plan_iter']):
@@ -179,6 +214,8 @@ class LMP_interface():
           break
     print(f'{bcolors.OKBLUE}[interfaces.py | {get_clock_time()}] finished executing path via controller{bcolors.ENDC}')
 
+
+
     # make sure we are at the final target position and satisfy any additional parametrization
     # (skip if we are specifying object-centric motion)
     if not object_centric:
@@ -206,6 +243,7 @@ class LMP_interface():
 
     return execute_info
   
+  # 在厘米和体素索引之间进行转换
   def cm2index(self, cm, direction):
     if isinstance(direction, str) and direction == 'x':
       x_resolution = self._resolution[0] * 100  # resolution is in m, we need cm
@@ -228,6 +266,7 @@ class LMP_interface():
       z_index = self.cm2index(z_cm, 'z')
       return np.array([x_index, y_index, z_index])
   
+  # 在厘米和体素索引之间进行转换
   def index2cm(self, index, direction=None):
     if direction is None:
       average_resolution = np.mean(self._resolution)
@@ -244,10 +283,12 @@ class LMP_interface():
     else:
       raise NotImplementedError
     
+  # 给定一个3D向量，计算指向该向量的四元数表示（利用外部函数 pointat2quat）。
   def pointat2quat(self, vector):
     assert isinstance(vector, np.ndarray) and vector.shape == (3,), f'vector: {vector}'
     return pointat2quat(vector)
 
+  # 在给定的体素地图中，将指定坐标及半径范围内的所有体素赋予指定值，半径值以厘米计。
   def set_voxel_by_radius(self, voxel_map, voxel_xyz, radius_cm=0, value=1):
     """given a 3D np array, set the value of the voxel at voxel_xyz to value. If radius is specified, set the value of all voxels within the radius to value."""
     voxel_map[voxel_xyz[0], voxel_xyz[1], voxel_xyz[2]] = value
@@ -265,6 +306,7 @@ class LMP_interface():
       voxel_map[min_x:max_x, min_y:max_y, min_z:max_z] = value
     return voxel_map
   
+  # 这些方法调用 _get_default_voxel_map，返回默认的空体素地图
   def get_empty_affordance_map(self):
     return self._get_default_voxel_map('target')()  # return evaluated voxel map instead of functions (such that LLM can manipulate it)
 
@@ -286,6 +328,9 @@ class LMP_interface():
   # ======================================================
   # == helper functions
   # ======================================================
+  
+  # 将给定的世界坐标转换为体素坐标
+  # 体素坐标是？
   def _world_to_voxel(self, world_xyz):
     _world_xyz = world_xyz.astype(np.float32)
     _voxels_bounds_robot_min = self._env.workspace_bounds_min.astype(np.float32)
@@ -294,6 +339,7 @@ class LMP_interface():
     voxel_xyz = pc2voxel(_world_xyz, _voxels_bounds_robot_min, _voxels_bounds_robot_max, _map_size)
     return voxel_xyz
 
+  # 将体素坐标转换回世界坐标
   def _voxel_to_world(self, voxel_xyz):
     _voxels_bounds_robot_min = self._env.workspace_bounds_min.astype(np.float32)
     _voxels_bounds_robot_max = self._env.workspace_bounds_max.astype(np.float32)
@@ -301,6 +347,7 @@ class LMP_interface():
     world_xyz = voxel2pc(voxel_xyz, _voxels_bounds_robot_min, _voxels_bounds_robot_max, _map_size)
     return world_xyz
 
+  # 将一组点云（世界坐标）转换为体素地图
   def _points_to_voxel_map(self, points):
     """convert points in world frame to voxel frame, voxelize, and return the voxelized points"""
     _points = points.astype(np.float32)
@@ -309,16 +356,19 @@ class LMP_interface():
     _map_size = self._map_size
     return pc2voxel_map(_points, _voxels_bounds_robot_min, _voxels_bounds_robot_max, _map_size)
 
+  # 计算体素地图中值为1的体素的中心位置
   def _get_voxel_center(self, voxel_map):
     """calculte the center of the voxel map where value is 1"""
     voxel_center = np.array(np.where(voxel_map == 1)).mean(axis=1)
     return voxel_center
 
+  # 将点云转换为体素地图，用于后续障碍物检测
   def _get_scene_collision_voxel_map(self):
     collision_points_world, _ = self._env.get_scene_3d_obs(ignore_robot=True)
     collision_voxel = self._points_to_voxel_map(collision_points_world)
     return collision_voxel
 
+  # 根据类型生成默认的体素地图
   def _get_default_voxel_map(self, type='target'):
     """returns default voxel map (defaults to current state)"""
     def fn_wrapper():
@@ -339,6 +389,7 @@ class LMP_interface():
       return voxel_map
     return fn_wrapper
   
+  #将规划器生成的体素路径转换为轨迹
   def _path2traj(self, path, rotation_map, velocity_map, gripper_map):
     """
     convert path (generated by planner) to trajectory (used by controller)
@@ -377,6 +428,7 @@ class LMP_interface():
       traj.append((world_xyz, rotation, velocity, gripper))
     return traj
   
+  # 对障碍物地图进行预处理
   def _preprocess_avoidance_map(self, avoidance_map, affordance_map, movable_obs):
     # collision avoidance
     scene_collision_map = self._get_scene_collision_voxel_map()
@@ -398,14 +450,22 @@ class LMP_interface():
     avoidance_map = np.clip(avoidance_map, 0, 1)
     return avoidance_map
 
+# 初始化 LMP语言模型程序
 def setup_LMP(env, general_config, debug=False):
+
+  #读取配置：分别读取与控制、规划、LMP 环境、各语言模型接口相关的配置，以及环境名称
   controller_config = general_config['controller']
   planner_config = general_config['planner']
   lmp_env_config = general_config['lmp_config']['env']
   lmps_config = general_config['lmp_config']['lmps']
   env_name = general_config['env_name']
+
   # LMP env wrapper
+  # LMP_interface：大模型与底层环境之间的接口
   lmp_env = LMP_interface(env, lmp_env_config, controller_config, planner_config, env_name=env_name)
+  
+  # 创建 LMP 模块可调用的 API 字典
+  # 外部数学库函数和常用转换函数
   # creating APIs that the LMPs can interact with
   fixed_vars = {
       'np': np,
@@ -414,35 +474,49 @@ def setup_LMP(env, general_config, debug=False):
       'qinverse': transforms3d.quaternions.qinverse,
       'qmult': transforms3d.quaternions.qmult,
   }  # external library APIs
+
+  # 收集 lmp_env 中所有公开（不以下划线开头）的可调用方法，构成一个 API 字典
   variable_vars = {
       k: getattr(lmp_env, k)
       for k in dir(lmp_env) if callable(getattr(lmp_env, k)) and not k.startswith("_")
   }  # our custom APIs exposed to LMPs
+  # 收集了所有公开的可调用方法 让 LLM 通过 variable_vars 调用 LMP_interface 方法
 
+  # 创建低级 LMP 模块
+  # 筛选：从 lmps_config 中排除 'composer'、'planner' 和 'config'，其余的被视为低级 LMP 模块
   # allow LMPs to access other LMPs
   lmp_names = [name for name in lmps_config.keys() if not name in ['composer', 'planner', 'config']]
   low_level_lmps = {
       k: LMP(k, lmps_config[k], fixed_vars, variable_vars, debug, env_name)
       for k in lmp_names
   }
+  # "低级 LMP"
   variable_vars.update(low_level_lmps)
 
+  # 创建高层 LMP 模块
   # creating the LMP for skill-level composition
+  # 组合器用于技能级别的组合，即将低级技能组合成更复杂的操作。
+  # 创建完毕后，也将其加入到 variable_vars 中，方便其他模块调用。
   composer = LMP(
       'composer', lmps_config['composer'], fixed_vars, variable_vars, debug, env_name
   )
+  # 更新 API 字典： 将低级 LMP 实例添加到 variable_vars 中，这样其他 LMP 模块或上层系统就可以通过统一的接口调用低级技能。
   variable_vars['composer'] = composer
 
+  # 任务规划器主要负责解析高层自然语言指令，将指令转化为具体的动作或技能调用。
   # creating the LMP that deals w/ high-level language commands
   task_planner = LMP(
       'planner', lmps_config['planner'], fixed_vars, variable_vars, debug, env_name
   )
 
+  # 组装并返回所有 LMP 模块
   lmps = {
       'plan_ui': task_planner,
       'composer_ui': composer,
   }
   lmps.update(low_level_lmps)
+  # 创建一个字典 lmps，将任务规划器和组合器分别以 'plan_ui' 和 'composer_ui' 为键存入。
+  # 然后将低级 LMP 模块字典也合并进来。
 
   return lmps, lmp_env
 
