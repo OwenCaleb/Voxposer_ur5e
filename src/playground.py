@@ -11,6 +11,34 @@ from rlbench import tasks
 openai.api_key = "sk-cgpibTHnxWRPOUxdb05uaf9wPc687e0mc4EJIzpNjT3G2q5F"
 openai.api_base= "https://api.chatanywhere.tech/v1"
 
+
+#日志输出 工具
+################################################
+import os
+from datetime import datetime
+
+# 定义日志保存目录
+log_dir = "/home/ur5/voxposer/Voxposer_ur5e/check"
+
+#（确保目录存在）
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# 时间戳
+def get_timestamp():
+    # 返回当前时间的字符串，格式为 YYYYMMDD_HHMMSS
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# 方法 把指定内容放到指定文件名的txt中
+def log_to_file(filename_prefix, content):
+    filename = f"{filename_prefix}_{get_timestamp()}.txt"
+    path = os.path.join(log_dir, filename)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(content + "\n")
+################################################
+
+
+
 #配置文件加载
 config = get_config('rlbench')
 
@@ -35,10 +63,10 @@ voxposer_ui = lmps['plan_ui']
 # below are the tasks that have object names added to the "task_object_names.json" file
 # uncomment one to use
 # env.load_task(tasks.PutRubbishInBin)
-env.load_task(tasks.LampOff)
+# env.load_task(tasks.LampOff)
 # env.load_task(tasks.OpenWineBottle)
 # env.load_task(tasks.PushButton)
-# env.load_task(tasks.TakeOffWeighingScales)
+env.load_task(tasks.TakeOffWeighingScales)
 # env.load_task(tasks.MeatOffGrill)
 # env.load_task(tasks.SlideBlockToTarget)
 # env.load_task(tasks.TakeLidOffSaucepan)
@@ -52,5 +80,9 @@ set_lmp_objects(lmps, env.get_object_names())  # set the object names to be used
 # ？ 为什么要random
 instruction = np.random.choice(descriptions)
 
+# 记录指令
+log_to_file("instruction_log", f"Prompt:\n{instruction}")
+
 # 主要执行方法
 voxposer_ui(instruction)
+

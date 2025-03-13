@@ -10,6 +10,31 @@ from utils import load_prompt, DynamicObservation, IterableDynamicObservation
 import time
 from LLM_cache import DiskCache
 
+#日志输出 工具
+################################################
+import os
+from datetime import datetime
+
+# 定义日志保存目录
+log_dir = "/home/ur5/voxposer/Voxposer_ur5e/check"
+
+#（确保目录存在）
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# 时间戳
+def get_timestamp():
+    # 返回当前时间的字符串，格式为 YYYYMMDD_HHMMSS
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# 方法 把指定内容放到指定文件名的txt中
+def log_to_file(filename_prefix, content):
+    filename = f"{filename_prefix}_{get_timestamp()}.txt"
+    path = os.path.join(log_dir, filename)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(content + "\n")
+################################################
+
 '''
 用于让 LLM（大语言模型）控制机器人
 采用 "Code as Policies" 思想（用代码直接指导机器人行动）
@@ -116,6 +141,9 @@ class LMP:
         #调用 build_prompt 构造最终输入给 LLM 的 prompt
         prompt, user_query = self.build_prompt(query)
 
+        # 记录：最终输入给 LLM 的 prompt
+        log_to_file("prompt_log", f"Prompt:\n{prompt}")
+
         #通过 _cached_api_call 调用 OpenAI API 生成代码
         start_time = time.time()
         while True:
@@ -148,6 +176,10 @@ class LMP:
             # 不包含上下文时：直接使用生成的代码
             to_exec = code_str
             to_log = f'{user_query}\n{to_exec}'
+
+        # 记录：生成的代码
+        log_to_file("code_log", f"Generated code:\n{to_log}")
+
         to_log_pretty = highlight(to_log, PythonLexer(), TerminalFormatter())
         if self._cfg['include_context']:
             print('#'*40 + f'\n## "{self._name}" generated code\n' + f'## context: "{self._context}"\n' + '#'*40 + f'\n{to_log_pretty}\n')
@@ -184,6 +216,9 @@ class LMP:
             exec_safe(to_exec, gvars, lvars)
 
         self.exec_hist += f'\n{to_log.strip()}'
+
+        # 记录：历史信息
+        log_to_file("hist_log", f"Execution history updated:\n{self.exec_hist}")
 
         if self._cfg['maintain_session']:
             self._variable_vars.update(lvars)#如果 maintain_session=True，则 self._variable_vars 里存储的变量（如环境状态、执行历史）会被更新。这样，在下一次 LMP 执行时，可以保留上次执行后的变量，维持连续的推理过程。
@@ -230,9 +265,21 @@ def exec_safe(code_str, gvars=None, lvars=None):
         {'exec': empty_fn, 'eval': empty_fn}
     ])
 
+    # 构造日志内容，记录三个参数
+    log_content = (
+        "=== exec_safe 参数记录 ===\n"
+        f"code_str:\n{code_str}\n\n"
+        f"custom_gvars:\n{custom_gvars}\n\n"
+        f"lvars:\n{lvars}\n"
+        "==========================\n"
+    )
+    log_to_file("exec_safe_params", log_content)
+
     # 使用 exec 函数执行传入的代码字符串 code_str
     try:
         exec(code_str, custom_gvars, lvars)
+        # Python 的内置函数 exec() 用于执行存储在字符串或代码对象中的 Python 代码
+        # 将字符串作为代码在指定的全局和局部命名空间中执行
     except Exception as e:
         print(f'Error executing code:\n{code_str}')
         raise e

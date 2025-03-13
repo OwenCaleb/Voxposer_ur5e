@@ -1,0 +1,7 @@
+Generated code:
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: take the green pepper off of the scales.
+composer("grasp the green pepper")
+composer("back to default pose")
+composer("move away from the scale by 10cm")
+composer("open gripper")
