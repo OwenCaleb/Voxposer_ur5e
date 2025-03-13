@@ -1,0 +1,5 @@
+Generated code:
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: scale.
+scale = detect('scale')
+ret_val = scale

@@ -1,0 +1,8 @@
+Execution history updated:
+
+# Query: turn counter-clockwise by 180 degrees.
+rotation_map = get_empty_rotation_map()
+curr_rotation = rotation_map[0, 0, 0]
+rotation_delta = euler2quat(0, 0, -np.pi)
+rotation_map[:, :, :] = qmult(curr_rotation, rotation_delta)
+ret_val = rotation_map

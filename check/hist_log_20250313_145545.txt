@@ -1,0 +1,6 @@
+Execution history updated:
+
+objects = ['bottle', 'cap']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper

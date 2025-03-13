@@ -1,0 +1,6 @@
+Generated code:
+# Query: close everywhere.
+gripper_map = get_empty_gripper_map()
+# close everywhere
+gripper_map[:, :, :] = 0
+ret_val = gripper_map

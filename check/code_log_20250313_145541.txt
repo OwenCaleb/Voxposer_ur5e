@@ -1,0 +1,9 @@
+Generated code:
+objects = ['bottle', 'cap']
+# Query: open wine bottle.
+composer("grasp the bottle")
+composer("back to default pose")
+composer("grasp the cap")
+composer("turn counterclockwise by 180 degrees")
+composer("back to default pose")
+# done

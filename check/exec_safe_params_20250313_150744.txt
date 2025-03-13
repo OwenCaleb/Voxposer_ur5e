@@ -1,0 +1,14 @@
+=== exec_safe 参数记录 ===
+code_str:
+def ret_val():
+    objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+    gripper = detect('gripper')
+    return gripper
+
+custom_gvars:
+{'np': <module 'numpy' from '/home/ur5/anaconda3/envs/voxposer-env/lib/python3.9/site-packages/numpy/__init__.py'>, 'euler2quat': <function euler2quat at 0x748c66f38430>, 'quat2euler': <function quat2euler at 0x748c66f384c0>, 'qinverse': <function qinverse at 0x748c66f319d0>, 'qmult': <function qmult at 0x748c66f31790>, 'cm2index': <bound method LMP_interface.cm2index of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'detect': <bound method LMP_interface.detect of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'execute': <bound method LMP_interface.execute of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'get_ee_pos': <bound method LMP_interface.get_ee_pos of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'get_empty_affordance_map': <bound method LMP_interface.get_empty_affordance_map of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'get_empty_avoidance_map': <bound method LMP_interface.get_empty_avoidance_map of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'get_empty_gripper_map': <bound method LMP_interface.get_empty_gripper_map of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'get_empty_rotation_map': <bound method LMP_interface.get_empty_rotation_map of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'get_empty_velocity_map': <bound method LMP_interface.get_empty_velocity_map of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'index2cm': <bound method LMP_interface.index2cm of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'pointat2quat': <bound method LMP_interface.pointat2quat of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'reset_to_default_pose': <bound method LMP_interface.reset_to_default_pose of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'set_voxel_by_radius': <bound method LMP_interface.set_voxel_by_radius of <interfaces.LMP_interface object at 0x748c317e7ee0>>, 'parse_query_obj': <LMP.LMP object at 0x748c317e7f10>, 'get_affordance_map': <LMP.LMP object at 0x748c317e7e80>, 'get_avoidance_map': <LMP.LMP object at 0x748c317f3040>, 'get_velocity_map': <LMP.LMP object at 0x748c317f3310>, 'get_rotation_map': <LMP.LMP object at 0x748c317f33a0>, 'get_gripper_map': <LMP.LMP object at 0x748c317f3280>, 'composer': <LMP.LMP object at 0x748c317e7f40>, 'exec': <function exec_safe.<locals>.<lambda> at 0x748c317b1ee0>, 'eval': <function exec_safe.<locals>.<lambda> at 0x748c317b1ee0>}
+
+lvars:
+{}
+==========================
+

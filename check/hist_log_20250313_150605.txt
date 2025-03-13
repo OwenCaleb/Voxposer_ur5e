@@ -1,0 +1,31 @@
+Execution history updated:
+
+# Query: turn counterclockwise to unscrew the cap.
+# turn counterclockwise to unscrew the cap.
+rotation_map = get_empty_rotation_map()
+beer_cap = parse_query_obj('beer cap')
+(x, y, z) = beer_cap.position
+curr_rotation = rotation_map[x, y, z]
+rotation_delta = euler2quat(0, 0, np.pi / 3)  # 60 degrees counterclockwise
+rotation_map[x, y, z] = qmult(curr_rotation, rotation_delta)
+ret_val = rotation_map
+Execution history updated:
+
+objects = ['bottle', 'cap']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['bottle', 'cap']
+# Query: bottle.
+bottle = detect('bottle')
+ret_val = bottle
+objects = ['bottle', 'cap']
+# Query: bottle.
+bottle = detect('bottle')
+ret_val = bottle
+objects = ['bottle', 'cap']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['bottle', 'cap']
+# Query: beer cap.

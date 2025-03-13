@@ -1,0 +1,26 @@
+Execution history updated:
+
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: green pepper.
+green_pepper = detect('green pepper')
+ret_val = green_pepper
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: green pepper.
+green_pepper = detect('green pepper')
+ret_val = green_pepper
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: scale.
+scale = detect('scale')
+ret_val = scale
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper

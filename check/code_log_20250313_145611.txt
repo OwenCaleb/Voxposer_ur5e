@@ -1,0 +1,7 @@
+Generated code:
+# Query: a point at the center of the cap.
+affordance_map = get_empty_affordance_map()
+cap = parse_query_obj('cap')
+x, y, z = cap.position
+affordance_map[x, y, z] = 1
+ret_val = affordance_map

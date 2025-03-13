@@ -1,0 +1,9 @@
+Generated code:
+# Query: a point towards the target.
+affordance_map = get_empty_affordance_map()
+target = parse_query_obj('target')
+# moving towards the target, we use its normal direction
+moving_dir = target.normal
+affordance_xyz = target.position + moving_dir
+affordance_map[affordance_xyz[0], affordance_xyz[1], affordance_xyz[2]] = 1
+ret_val = affordance_map

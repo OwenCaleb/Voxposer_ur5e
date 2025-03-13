@@ -1,0 +1,3 @@
+Generated code:
+# Query: back to default pose.
+reset_to_default_pose()

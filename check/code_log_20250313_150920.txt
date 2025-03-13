@@ -1,0 +1,5 @@
+Generated code:
+objects = ['block', 'target']
+# Query: target.
+target = detect('target')
+ret_val = target

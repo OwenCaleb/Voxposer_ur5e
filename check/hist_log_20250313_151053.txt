@@ -1,0 +1,59 @@
+Execution history updated:
+
+# Query: a point at the center of the saucepan lid.
+affordance_map = get_empty_affordance_map()
+saucepan_lid = parse_query_obj('saucepan lid')
+x, y, z = saucepan_lid.position
+affordance_map[x, y, z] = 1
+ret_val = affordance_map
+# Query: a point 10cm above the saucepan lid.
+affordance_map = get_empty_affordance_map()
+saucepan_lid = parse_query_obj('saucepan lid')
+(min_x, min_y, min_z), (max_x, max_y, max_z) = saucepan_lid.aabb
+center_x, center_y, center_z = saucepan_lid.position
+# 10cm above so we add to z-axis
+x = center_x
+y = center_y
+z = max_z + cm2index(10, 'z')
+affordance_map[x, y, z] = 1
+ret_val = affordance_map
+Execution history updated:
+
+# Query: open everywhere except 1cm around the saucepan lid.
+gripper_map = get_empty_gripper_map()
+# open everywhere
+gripper_map[:, :, :] = 1
+# close when 1cm around the saucepan lid
+saucepan_lid = parse_query_obj('saucepan lid')
+set_voxel_by_radius(gripper_map, saucepan_lid.position, radius_cm=1, value=0)
+ret_val = gripper_map
+# Query: open everywhere except 1cm around the saucepan lid.
+gripper_map = get_empty_gripper_map()
+# open everywhere
+gripper_map[:, :, :] = 1
+# close when 1cm around the saucepan lid
+saucepan_lid = parse_query_obj('saucepan lid')
+set_voxel_by_radius(gripper_map, saucepan_lid.position, radius_cm=1, value=0)
+ret_val = gripper_map
+Execution history updated:
+
+objects = ['saucepan', 'saucepan_lid']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['saucepan', 'saucepan_lid']
+# Query: saucepan lid.
+saucepan_lid = detect('saucepan_lid')
+ret_val = saucepan_lid
+objects = ['saucepan', 'saucepan_lid']
+# Query: saucepan lid.
+saucepan_lid = detect('saucepan_lid')
+ret_val = saucepan_lid
+objects = ['saucepan', 'saucepan_lid']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['saucepan', 'saucepan_lid']
+# Query: saucepan lid.
+saucepan_lid = detect('saucepan_lid')
+ret_val = saucepan_lid

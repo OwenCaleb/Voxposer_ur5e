@@ -1,0 +1,24 @@
+Execution history updated:
+
+# Query: close everywhere.
+gripper_map = get_empty_gripper_map()
+# close everywhere
+gripper_map[:, :, :] = 0
+ret_val = gripper_map
+Execution history updated:
+
+# Query: move to the center of the button.
+movable = parse_query_obj('gripper')
+affordance_map = get_affordance_map('a point at the center of the button')
+execute(movable, affordance_map=affordance_map)
+# Query: close the gripper.
+movable = parse_query_obj('gripper')
+gripper_map = get_gripper_map('close everywhere')
+execute(movable, gripper_map=gripper_map)
+Execution history updated:
+
+objects = ['button']
+# Query: press the black button.
+composer("move to the center of the button")
+composer("close the gripper")
+# done

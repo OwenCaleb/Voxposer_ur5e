@@ -1,0 +1,6 @@
+Generated code:
+objects = ['button']
+# Query: press the black button.
+composer("move to the center of the button")
+composer("close the gripper")
+# done

@@ -1,0 +1,12 @@
+Generated code:
+# Query: a point 10cm above the scale.
+affordance_map = get_empty_affordance_map()
+scale = parse_query_obj('scale')
+(min_x, min_y, min_z), (max_x, max_y, max_z) = scale.aabb
+center_x, center_y, center_z = scale.position
+# 10cm above so we add to z-axis
+x = center_x
+y = center_y
+z = max_z + cm2index(10, 'z')
+affordance_map[x, y, z] = 1
+ret_val = affordance_map

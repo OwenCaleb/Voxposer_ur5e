@@ -1,0 +1,6 @@
+Generated code:
+# Query: open everywhere.
+gripper_map = get_empty_gripper_map()
+# open everywhere
+gripper_map[:, :, :] = 1
+ret_val = gripper_map

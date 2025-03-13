@@ -1,0 +1,10 @@
+Generated code:
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: green pepper.
+green_pepper = detect('green pepper')
+ret_val = green_pepper
+Generated code:
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: green pepper.
+green_pepper = detect('green pepper')
+ret_val = green_pepper

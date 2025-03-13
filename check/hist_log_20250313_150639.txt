@@ -1,0 +1,10 @@
+Execution history updated:
+
+objects = ['button']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['button']
+# Query: button.
+button = detect('button')
+ret_val = button

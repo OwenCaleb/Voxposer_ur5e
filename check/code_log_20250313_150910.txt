@@ -1,0 +1,5 @@
+Generated code:
+objects = ['block', 'target']
+# Query: slide the block towards the green target.
+composer("push the block towards the target")
+# done

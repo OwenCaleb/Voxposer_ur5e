@@ -1,0 +1,10 @@
+Generated code:
+# Query: move to 10cm above the table.
+movable = parse_query_obj('gripper')
+affordance_map = get_affordance_map('a point 10cm above the table')
+execute(movable, affordance_map=affordance_map)
+Generated code:
+objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper

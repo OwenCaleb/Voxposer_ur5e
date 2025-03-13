@@ -1,0 +1,10 @@
+Generated code:
+objects = ['bottle', 'cap']
+# Query: bottle.
+bottle = detect('bottle')
+ret_val = bottle
+Generated code:
+objects = ['bottle', 'cap']
+# Query: bottle.
+bottle = detect('bottle')
+ret_val = bottle

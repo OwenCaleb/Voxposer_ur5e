@@ -46,7 +46,10 @@ config = get_config('rlbench')
 # 遍历配置中所有的语言模型（LMP）的设置，将其模型更改
 # uncomment this if you'd like to change the language model (e.g., for faster speed or lower cost)
 for lmp_name, cfg in config['lmp_config']['lmps'].items():
-    cfg['model'] = 'gpt-3.5-turbo'
+    cfg['model'] = 'gpt-4o-mini'
+# gpt-4 （贵）
+# gpt-3.5-turbo (成功率低)
+# gpt-4o-mini （合适）
 
 # 对象初始化
 # initialize env and voxposer ui
