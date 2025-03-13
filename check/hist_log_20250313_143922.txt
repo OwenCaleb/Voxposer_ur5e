@@ -1,0 +1,8 @@
+Execution history updated:
+
+# Query: a point at the center of the saucepan lid.
+affordance_map = get_empty_affordance_map()
+saucepan_lid = parse_query_obj('saucepan lid')
+x, y, z = saucepan_lid.position
+affordance_map[x, y, z] = 1
+ret_val = affordance_map

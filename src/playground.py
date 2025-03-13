@@ -66,10 +66,10 @@ voxposer_ui = lmps['plan_ui']
 # env.load_task(tasks.LampOff)
 # env.load_task(tasks.OpenWineBottle)
 # env.load_task(tasks.PushButton)
-env.load_task(tasks.TakeOffWeighingScales)
+# env.load_task(tasks.TakeOffWeighingScales)
 # env.load_task(tasks.MeatOffGrill)
 # env.load_task(tasks.SlideBlockToTarget)
-# env.load_task(tasks.TakeLidOffSaucepan)
+env.load_task(tasks.TakeLidOffSaucepan)
 # env.load_task(tasks.TakeUmbrellaOutOfUmbrellaStand)
 
 # 重置环境 

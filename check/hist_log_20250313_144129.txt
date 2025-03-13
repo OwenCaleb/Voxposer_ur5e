@@ -1,0 +1,26 @@
+Execution history updated:
+
+objects = ['saucepan', 'saucepan_lid']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['saucepan', 'saucepan_lid']
+# Query: saucepan lid.
+saucepan_lid = detect('saucepan_lid')
+ret_val = saucepan_lid
+objects = ['saucepan', 'saucepan_lid']
+# Query: saucepan lid.
+saucepan_lid = detect('saucepan_lid')
+ret_val = saucepan_lid
+objects = ['saucepan', 'saucepan_lid']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper
+objects = ['saucepan', 'saucepan_lid']
+# Query: saucepan.
+saucepan = detect('saucepan')
+ret_val = saucepan
+objects = ['saucepan', 'saucepan_lid']
+# Query: gripper.
+gripper = detect('gripper')
+ret_val = gripper

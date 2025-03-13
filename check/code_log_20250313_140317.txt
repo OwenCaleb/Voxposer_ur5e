@@ -1,9 +1,0 @@
-Generated code:
-objects = ['scale', 'green pepper', 'red pepper', 'yellow pepper']
-# Query: take the yellow object off of the scales tray.
-composer("grasp the yellow pepper")
-composer("back to default pose")
-composer("move away from the scales tray by 10cm")
-composer("open gripper")
-composer("back to default pose")
-# done

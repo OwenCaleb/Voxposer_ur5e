@@ -5,7 +5,9 @@ from scipy.ndimage import distance_transform_edt
 from scipy.signal import savgol_filter
 from utils import get_clock_time, normalize_map, calc_curvature
 
-
+# 贪婪路径规划器
+# 从起始点出发，选择邻近体素中成本最低的点作为下一个路径点。
+# 平滑和裁剪等后处理操作
 class PathPlanner:
     """
     A greedy path planner that greedily chooses the next voxel with the lowest cost.
@@ -18,14 +20,22 @@ class PathPlanner:
 
     def optimize(self, start_pos: np.ndarray, target_map: np.ndarray, obstacle_map: np.ndarray, object_centric=False):
         """
+        输入参数：
+            start_pos: (3,) 的 NumPy 数组，表示起始体素坐标。
+            target_map: 三维数组 (map_size, map_size, map_size)，目标区域的体素表示（通常 1 表示目标区域）。
+            obstacle_map: 三维数组，同样尺寸，表示障碍物信息。
+            object_centric: 布尔值，表示是否以物体为中心的任务（即路径规划只考虑平面运动等限制）。
+
         config:
             start_pos: (3,) np.ndarray, start position
             target_map: (map_size, map_size, map_size) np.ndarray, target_map
             obstacle_map: (map_size, map_size, map_size) np.ndarray, obstacle_map
             object_centric: bool, whether the task is object centric (entity of interest is an object/part instead of robot)
+        
         Returns:
             path: (n, 3) np.ndarray, path
             info: dict, info
+
         """
         print(f'[planners.py | {get_clock_time(milliseconds=True)}] start')
         info = dict()
@@ -38,14 +48,26 @@ class PathPlanner:
         target_map = normalize_map(target_map)
         obstacle_map = gaussian_filter(obstacle_map, sigma=self.config.obstacle_map_gaussian_sigma)
         obstacle_map = normalize_map(obstacle_map)
+
+        # 生成成本地图 costmap
+        # 将平滑后的目标地图和障碍地图按权重相加，得到一个总体成本地图，后续选择下一步时以成本低为优先。
+        # 归一化
         # combine target_map and obstacle_map
         costmap = target_map * self.config.target_map_weight + obstacle_map * self.config.obstacle_map_weight
         costmap = normalize_map(costmap)
         _costmap = costmap.copy()
+
         # get stop criteria
         stop_criteria = self._get_stop_criteria()
         # initialize path
         path, current_pos = [start_pos], start_pos
+
+        '''
+        每一步计算当前点附近体素（具体范围由 _calculate_nearby_voxel 决定）。
+        从这些体素中选择成本最低的点作为下一步。
+        更新当前点和路径，并在当前点处增加成本以避免往回走。
+        当满足停止条件时，退出循环。
+        '''
         # optimize
         print(f'[planners.py | {get_clock_time(milliseconds=True)}] start optimizing, start_pos: {start_pos}')
         for i in range(self.config.max_steps):
@@ -66,6 +88,7 @@ class PathPlanner:
             # check stop criteria
             if stop_criteria(current_pos, _costmap, self.config.stop_threshold):
                 break
+        
         raw_path = np.array(path)
         print(f'[planners.py | {get_clock_time(milliseconds=True)}] optimization finished; path length: {len(raw_path)}')
         # postprocess path
@@ -86,6 +109,9 @@ class PathPlanner:
         info['targets_voxel'] = np.argwhere(raw_target_map == 1)
         return processed_path, info
     
+    '''
+    停止条件为：当前体素成本比周围体素低不少于 stop_threshold，即没有比当前点更优（低成本）的邻近体素
+    '''
     def _get_stop_criteria(self):
         def no_nearby_equal_criteria(current_pos, costmap, stop_threshold):
             """
@@ -102,6 +128,9 @@ class PathPlanner:
         return no_nearby_equal_criteria
 
     def _calculate_nearby_voxel(self, current_pos, object_centric=False):
+        '''
+        计算并返回当前点附近的所有体素坐标
+        '''
         # create a grid of nearby voxels
         half_size = int(2 * self.map_size / 100)
         offsets = np.arange(-half_size, half_size + 1)
@@ -122,12 +151,22 @@ class PathPlanner:
     
     def _postprocess_path(self, path, raw_target_map, object_centric=False):
         """
+        对初步规划得到的路径进行平滑、裁剪和重采样等处理，使路径更平滑、连续，同时确保最后一步落在目标区域内。
         Apply various postprocessing steps to the path.
         """
+
+        '''
+        使用 Savitzky–Golay 滤波器对路径进行平滑
+        '''
         # smooth the path
         savgol_window_size = min(len(path), self.config.savgol_window_size)
         savgol_polyorder = min(self.config.savgol_polyorder, savgol_window_size - 1)
         path = savgol_filter(path, savgol_window_size, savgol_polyorder, axis=0)
+
+        '''
+        若从第 5 个点起出现曲率过高的情况，则提前截断路径
+        防止路径中突然急转弯影响运动稳定性
+        '''
         # early cutoff if curvature is too high
         curvature = calc_curvature(path)
         if len(curvature) > 5:
@@ -135,6 +174,7 @@ class PathPlanner:
             if len(high_curvature_idx) > 0:
                 high_curvature_idx += 5
                 path = path[:int(0.9 * high_curvature_idx[0])]  
+
         # skip waypoints such that they reach target spacing
         path_trimmed = path[1:-1]
         skip_ratio = None

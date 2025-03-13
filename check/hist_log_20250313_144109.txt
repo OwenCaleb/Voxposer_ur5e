@@ -1,0 +1,19 @@
+Execution history updated:
+
+# Query: a point at the center of the saucepan lid.
+affordance_map = get_empty_affordance_map()
+saucepan_lid = parse_query_obj('saucepan lid')
+x, y, z = saucepan_lid.position
+affordance_map[x, y, z] = 1
+ret_val = affordance_map
+# Query: a point 5cm above the saucepan.
+affordance_map = get_empty_affordance_map()
+saucepan = parse_query_obj('saucepan')
+(min_x, min_y, min_z), (max_x, max_y, max_z) = saucepan.aabb
+center_x, center_y, center_z = saucepan.position
+# 5cm above so we add to z-axis
+x = center_x
+y = center_y
+z = max_z + cm2index(5, 'z')
+affordance_map[x, y, z] = 1
+ret_val = affordance_map
