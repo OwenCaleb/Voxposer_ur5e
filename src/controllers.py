@@ -98,6 +98,13 @@ class Controller:
         """
         根据传入的 observation（movable_obs）和目标 waypoint，执行对应动作
 
+        movable_obs：一个字典，包含了需要被移动的对象的观测信息。其中必须包含 'name' 字段，用于判断对象是否为末端执行器（end effector）。
+        waypoint：一个列表，包含了四个元素：
+
+            target_xyz：目标位置坐标（世界坐标系下），形状 (3,)。
+            target_rotation：目标旋转（例如四元数形式），形状 (4,)（或者其它规定格式）。
+            target_velocity：目标运动速度。
+            target_gripper：目标夹爪状态（例如开/关）。
 
         execute a waypoint
         If movable is "end effector", then do not consider object interaction (no dynamics considered)
@@ -108,14 +115,27 @@ class Controller:
         :return: None
         """
         info = dict()
+
         target_xyz, target_rotation, target_velocity, target_gripper = waypoint
+
+        '''
+        判断当前任务是面向末端执行器还是面向对象
+        如果 movable_obs['name'] 属于末端执行器（例如 'gripper' 等），则 object_centric 为 False，即直接控制末端执行器移动，不考虑物体间相互作用；
+        如果 movable_obs['name'] 不在 EE_ALIAS 中，则认为是对象（例如被推动的物体），需要使用动力学模型对对象运动进行预测和控制，此时 object_centric 为 True。
+        '''
         object_centric = (not movable_obs['name'].lower() in EE_ALIAS)
+
+        '''
+        直接执行末端执行器动作（非对象中心）
+        采用 MPC 优化控制（对象中心） (具体如何实现？)
+        '''
         # move to target pose directly
         if not object_centric:
             target_pose = np.concatenate([target_xyz, target_rotation])
             result = self.env.apply_action(np.concatenate([target_pose, [target_gripper]]))
             info['mp_info'] = result
         # optimize through dynamics model to obtain robot actions
+        # 当任务被判定为面向对象（object_centric 为 True）时，需要考虑物体之间的相互作用，不能简单地直接控制末端执行器。
         else:
             start = time.time()
             # sample control sequence using MPC
